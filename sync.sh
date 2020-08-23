@@ -1,0 +1,1 @@
+rsync -rtuvzz -e ssh ./ ovh:/video-downloader-bot

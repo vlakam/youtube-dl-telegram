@@ -1,0 +1,13 @@
+version: "2"
+services:
+  node:
+    build:
+      context: .
+    env_file: .env
+    restart: always
+    volumes:
+      - ./tmp:/home/node/app/tmp
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"

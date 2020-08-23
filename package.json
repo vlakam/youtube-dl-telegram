@@ -1,0 +1,20 @@
+{
+  "name": "video-downloader-bot",
+  "version": "0.0.0",
+  "description": "youtube-dl for telegram",
+  "main": "src/index.js",
+  "repository": "http://github.com/vlakam",
+  "author": "Vladislav Kamenev",
+  "license": "MIT",
+  "private": false,
+  "dependencies": {
+    "dotenv": "^8.2.0",
+    "fluent-ffmpeg": "^2.1.2",
+    "telegraf": "^3.38.0",
+    "youtube-dl": "^3.0.2"
+  },
+  "scripts": {
+    "start": "node src/index.js"
+  },
+  "devDependencies": {}
+}
