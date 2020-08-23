@@ -1,6 +1,7 @@
 require("dotenv").config();
 
 const { resolve } = require("path");
+const { existsSync } = require('fs');
 const fs = require("fs");
 const ffmpeg = require('fluent-ffmpeg');
 const youtubedl = require("youtube-dl");
@@ -15,28 +16,47 @@ const bot = new Telegraf(process.env.TELEGRAM_TOKEN, {
   },
 });
 
+const generateFileName = () => Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15);
+
 const createThumb = (pathToVideo) => {
-const thumbName = pathToVideo.split('\\').pop().split('/').pop().split('.').slice(0,-1).join('.') + '.jpg';
-console.log('thumb', pathToVideo, pathToVideo + '.jpg', thumbName);
-  return new Promise((rs) => {
+  const thumbName = pathToVideo.split('\\').pop().split('/').pop().split('.').slice(0,-1).join('.') + '.jpg';
+  return new Promise((rs, rj) => {
+    try {
       ffmpeg(pathToVideo).screenshots({
           timestamps: ['50%'],
           filename: thumbName,
-		folder: resolve(process.cwd(), 'tmp'),
+		      folder: resolve(process.cwd(), 'tmp'),
           scale: 'if(gt(iw,ih),90,trunc(oh*a/2)*2):if(gt(iw,ih),trunc(ow/a/2)*2,90)'
       }).on('end', () => {
           rs(resolve(process.cwd(), 'tmp', thumbName));
       })
+    } catch (e) {
+      rj(`no thumb: ${e}`);
+    }
   });
 }
 
 
-const defaultVideoParams = [
+const generateParams = (fileName) => [
   "-f",
   "bestvideo+bestaudio/best",
   "-o",
-  "./tmp/%(title)s.%(ext)s",
+  `./tmp/${fileName}.%(ext)s`,
 ];
+
+const findMyFile = (fileName) => {
+  const extensions = ['mp4', 'mkv', 'webm'];
+  for(const extension of extensions) {
+    const path = resolve(process.cwd(), 'tmp', `${fileName}.${extension}`);
+    if (existsSync(path)) {
+      return {
+        path, extension, fileName
+      }
+    }
+  }
+
+  throw Error('No such files');
+}
 
 const asyncyoutubedl = async (url, args, options) => {
   return new Promise((rs, rj) => {
@@ -66,23 +86,22 @@ bot.url((ctx) => {
         ctx.url = urls[0];
         console.log(ctx.url);
 
-        const info = await asyncyoutubedl(ctx.url, [
-          ...defaultVideoParams,   "--get-filename",
-        ]);
-
-        const filePath = resolve(process.cwd(), info);
-        let thumb = null;
-        console.log(filePath);
+        let filePath = null;
+        let thumbPath = null;
+        let fileName = generateFileName();
         try {
-          await asyncyoutubedl(ctx.url, defaultVideoParams)
-          thumb = await createThumb(filePath);
-          await ctx.replyWithVideo({ source: filePath} , { thumb: { source: thumb } });
+          await asyncyoutubedl(ctx.url, generateParams(fileName));
+          const { path } = findMyFile(fileName);
+          filePath = path;
+          console.log(filePath);
+          thumbPath = await createThumb(filePath);
+          await ctx.replyWithVideo({ source: filePath} , { thumb: { source: thumbPath } });
         } catch (e) {
           console.log(e);
         } finally {
           rs();
-          fs.unlinkSync(filePath);
-          fs.unlinkSync(thumb);
+          filePath && fs.unlinkSync(filePath);
+          thumbPath && fs.unlinkSync(thumbPath);
         }
       });
     },
