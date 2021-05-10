@@ -95,7 +95,7 @@ bot.url((ctx) => {
           filePath = path;
           console.log(filePath);
           thumbPath = await createThumb(filePath);
-          await ctx.replyWithVideo({ source: filePath} , { thumb: { source: thumbPath } });
+          await ctx.replyWithVideo({ source: filePath }, { thumb: { source: thumbPath }, supports_streaming: true });
         } catch (e) {
           console.log(e);
         } finally {
