@@ -39,7 +39,7 @@ const createThumb = (pathToVideo) => {
 
 const generateParams = (fileName) => [
   "-f",
-  "bestvideo+bestaudio/best",
+  "bestvideo[ext=mp4][height<=1080][vcodec!*=av01]+bestaudio[ext=m4a]/bestvideo[height<=1080]+bestaudio/bestvideo+bestaudio/best",
   "-o",
   `./tmp/${fileName}.%(ext)s`,
 ];
