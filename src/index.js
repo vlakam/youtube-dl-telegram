@@ -10,6 +10,7 @@ const Queue = require("./helpers/queue");
 
 const downloadQueue = new Queue();
 
+youtubedl.setYtdlBinary(resolve('yt-dlp'))
 const bot = new Telegraf(process.env.TELEGRAM_TOKEN, {
   telegram: {
     apiRoot: process.env.TELEGRAM_API || "https://api.telegram.org",
@@ -38,6 +39,8 @@ const createThumb = (pathToVideo) => {
 
 
 const generateParams = (fileName) => [
+  "--user-agent",
+  `"Mozilla/5.0 (Windows NT 6.1; Win64; x64; rv:68.0) Gecko/20100101 Firefox/68.0"`,
   "-f",
   "bestvideo[ext=mp4][height<=1080][vcodec!*=av01]+bestaudio[ext=m4a]/bestvideo[height<=1080]+bestaudio/bestvideo+bestaudio/best",
   "-o",
@@ -45,7 +48,7 @@ const generateParams = (fileName) => [
 ];
 
 const findMyFile = (fileName) => {
-  const extensions = ['mp4', 'mkv', 'webm'];
+  const extensions = ['mp4', 'mkv', 'webm', 'unknown_video'];
   for(const extension of extensions) {
     const path = resolve(process.cwd(), 'tmp', `${fileName}.${extension}`);
     if (existsSync(path)) {
@@ -71,7 +74,9 @@ const asyncyoutubedl = async (url, args, options) => {
   });
 };
 
+
 bot.url((ctx) => {
+  if (ctx.from.id === 2096216057) return;
   downloadQueue.enqueue({
     ctx,
     executor: () => {
@@ -84,13 +89,14 @@ bot.url((ctx) => {
           );
 
         ctx.url = urls[0];
-        console.log(ctx.url);
+        console.log(ctx.from, ctx.url);
 
         let filePath = null;
         let thumbPath = null;
         let fileName = generateFileName();
+
         try {
-          await asyncyoutubedl(ctx.url, generateParams(fileName));
+          await asyncyoutubedl(ctx.url, generateParams(fileName), { timeout: 180000 });
           const { path } = findMyFile(fileName);
           filePath = path;
           console.log(filePath);
