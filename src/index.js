@@ -39,8 +39,6 @@ const createThumb = (pathToVideo) => {
 
 
 const generateParams = (fileName) => [
-  "--user-agent",
-  `"Mozilla/5.0 (Windows NT 6.1; Win64; x64; rv:68.0) Gecko/20100101 Firefox/68.0"`,
   "-f",
   "bestvideo[ext=mp4][height<=1080][vcodec!*=av01]+bestaudio[ext=m4a]/bestvideo[height<=1080]+bestaudio/bestvideo+bestaudio/best",
   "-o",
