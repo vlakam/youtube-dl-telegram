@@ -20,16 +20,18 @@ const bot = new Telegraf(process.env.TELEGRAM_TOKEN, {
 const generateFileName = () => Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15);
 
 const createThumb = (pathToVideo) => {
-  const thumbName = pathToVideo.split('\\').pop().split('/').pop().split('.').slice(0,-1).join('.') + '.jpg';
+  const thumbName = pathToVideo.split('\\').pop().split('/').pop().split('.').slice(0, -1).join('.') + '.jpg';
   return new Promise((rs, rj) => {
     try {
       ffmpeg(pathToVideo).screenshots({
-          timestamps: ['50%'],
-          filename: thumbName,
-		      folder: resolve(process.cwd(), 'tmp'),
-          scale: 'if(gt(iw,ih),90,trunc(oh*a/2)*2):if(gt(iw,ih),trunc(ow/a/2)*2,90)'
+        timestamps: ['50%'],
+        filename: thumbName,
+        folder: resolve(process.cwd(), 'tmp'),
+        scale: 'if(gt(iw,ih),90,trunc(oh*a/2)*2):if(gt(iw,ih),trunc(ow/a/2)*2,90)'
       }).on('end', () => {
-          rs(resolve(process.cwd(), 'tmp', thumbName));
+        rs(resolve(process.cwd(), 'tmp', thumbName));
+      }).on('error', (e) => {
+        rj(`Doesn't look like a video lol`);
       })
     } catch (e) {
       rj(`no thumb: ${e}`);
@@ -47,7 +49,7 @@ const generateParams = (fileName) => [
 
 const findMyFile = (fileName) => {
   const extensions = ['mp4', 'mkv', 'webm', 'unknown_video'];
-  for(const extension of extensions) {
+  for (const extension of extensions) {
     const path = resolve(process.cwd(), 'tmp', `${fileName}.${extension}`);
     if (existsSync(path)) {
       return {
@@ -56,14 +58,14 @@ const findMyFile = (fileName) => {
     }
   }
 
-  throw Error('No such files');
+  throw Error('Unknown video format (maybe gifs?)');
 }
 
 const asyncyoutubedl = async (url, args, options) => {
   return new Promise((rs, rj) => {
     youtubedl.exec(url, args, options, function (err, output) {
       if (err) {
-        console.log(err); 
+        console.log(err);
         return rj(err);
       }
 
@@ -102,6 +104,7 @@ bot.url((ctx) => {
           await ctx.replyWithVideo({ source: filePath }, { thumb: { source: thumbPath }, supports_streaming: true });
         } catch (e) {
           console.log(e);
+          await ctx.reply(e.message);
         } finally {
           rs();
           filePath && fs.unlinkSync(filePath);
