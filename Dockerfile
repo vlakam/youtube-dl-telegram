@@ -20,7 +20,7 @@ RUN rm -rf /var/lib/{apt,dpkg,cache,log}/
 ENV NODE_WORKDIR /home/node/app
 
 WORKDIR $NODE_WORKDIR
-RUN wget https://github.com/yt-dlp/yt-dlp/releases/download/2022.11.11/yt-dlp
+RUN wget https://github.com/yt-dlp/yt-dlp/releases/download/2023.02.17/yt-dlp
 RUN chmod +x ./yt-dlp
 ADD . $NODE_WORKDIR
 RUN mkdir -p $NODE_WORKDIR/tmp
