@@ -79,38 +79,39 @@ bot.url((ctx) => {
   if (ctx.from.id === 2096216057) return;
   downloadQueue.enqueue({
     ctx,
-    executor: () => {
-      return new Promise(async (rs, rj) => {
-        const urls = ctx.message.entities
-          .filter(({ type }) => type === "url")
-          .slice(0, 1)
-          .map(({ offset, length }) =>
-            ctx.message.text.substring(offset, offset + length)
-          );
+    executor: async () => {
+      let entities = ctx.message.entities || ctx.message.caption_entities;
+      let text = ctx.message.text || ctx.message.caption;
 
-        ctx.url = urls[0];
-        console.log(ctx.from, ctx.url);
+      const urls = entities
+        .filter(({ type }) => type === "url")
+        .map(({ offset, length }) =>
+          text.substring(offset, offset + length)
+        );
 
-        let filePath = null;
-        let thumbPath = null;
-        let fileName = generateFileName();
+      console.log(urls);
+      ctx.url = urls[0];
+      console.log(ctx.from, ctx.url);
 
-        try {
-          await asyncyoutubedl(ctx.url, generateParams(fileName), { timeout: 180000 });
-          const { path } = findMyFile(fileName);
-          filePath = path;
-          console.log(filePath);
-          thumbPath = await createThumb(filePath);
-          await ctx.replyWithVideo({ source: filePath }, { thumb: { source: thumbPath }, supports_streaming: true });
-        } catch (e) {
-          console.log(e);
-          await ctx.reply(e.message);
-        } finally {
-          rs();
-          filePath && fs.unlinkSync(filePath);
-          thumbPath && fs.unlinkSync(thumbPath);
-        }
-      });
+      let filePath = null;
+      let thumbPath = null;
+      let fileName = generateFileName();
+
+      try {
+        await asyncyoutubedl(ctx.url, generateParams(fileName), { timeout: 180000 });
+        const { path } = findMyFile(fileName);
+        filePath = path;
+        console.log(filePath);
+        thumbPath = await createThumb(filePath);
+        await ctx.replyWithVideo({ source: filePath }, { thumb: { source: thumbPath }, supports_streaming: true });
+      } catch (e) {
+        console.log(e);
+        await ctx.reply(e.message);
+      } finally {
+        rs();
+        filePath && fs.unlinkSync(filePath);
+        thumbPath && fs.unlinkSync(thumbPath);
+      }
     },
   });
 });
