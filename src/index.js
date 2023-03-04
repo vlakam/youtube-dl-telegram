@@ -108,7 +108,6 @@ bot.url((ctx) => {
         console.log(e);
         await ctx.reply(e.message);
       } finally {
-        rs();
         filePath && fs.unlinkSync(filePath);
         thumbPath && fs.unlinkSync(thumbPath);
       }
