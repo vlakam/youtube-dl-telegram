@@ -11,7 +11,7 @@
     "dotenv": "^8.2.0",
     "fluent-ffmpeg": "^2.1.2",
     "telegraf": "^3.38.0",
-    "youtube-dl": "^3.0.2"
+    "youtube-dl": "3.3.0"
   },
   "scripts": {
     "start": "node src/index.js"
